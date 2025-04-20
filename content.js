@@ -6,15 +6,13 @@ let time = 0,
 
 let lastActivityTime = Date.now();
 let isActive = false;
-let reason = ''
+let reason = "";
+let src = "";
 
 function sendData(data) {
   chrome.runtime.sendMessage(data, (response) => {
     if (chrome.runtime.lastError) {
       console.error("Message failed:", chrome.runtime.lastError);
-    }
-    if (response.status !== "success") {
-      console.log("Response from background:", response);
     }
   });
 }
@@ -22,17 +20,21 @@ function sendData(data) {
 function addVideoEventHandlers(video) {
   video.addEventListener("play", () => {
     isActive = true;
-    sendData({ activity: true, type: "Video play" });
+    reason = "Воспроизведение видео";
+    src = window.origin;
+    sendData({ activity: true, type: "Воспроизведение видео", src: src });
   });
 
   video.addEventListener("pause", () => {
     isActive = false;
-    reason = 'Video paused'
+    reason = "Video paused";
+    src = window.origin;
   });
 
   video.addEventListener("ended", () => {
     isActive = false;
-    reason = 'Video ended'
+    reason = "Video ended";
+    src = window.origin;
   });
 }
 
@@ -76,21 +78,25 @@ function replaceIframesWithVideos() {
 function checkActivity() {
   const currentTime = Date.now();
   if (isActive || currentTime - lastActivityTime <= 1000) {
-    sendData({ activity: true, type: reason });
+    sendData({ activity: true, type: reason, src: src });
   } else {
-    sendData({ activity: false, type: reason });
+    sendData({ activity: false, type: reason, src: src });
   }
 }
 setInterval(checkActivity, 1000);
 
 function mouseHandler() {
   lastActivityTime = Date.now();
-    reason = `Активность мыши на сайте: ${window.origin}`
+  if (reason === "Воспроизведение видео" && isActive) return;
+  reason = `Активность мыши`;
+  src = window.origin;
 }
 
 function keyHandler() {
   lastActivityTime = Date.now();
-    reason = `Набор текста на сайте: ${window.origin}`
+  if (reason === "Воспроизведение видео" && isActive) return;
+  reason = `Ввод текста`;
+  src = window.origin;
 }
 
 function handleVideoEvents(video) {
@@ -114,8 +120,8 @@ function handleVideoEvents(video) {
 
 replaceIframesWithVideos();
 const videos = body.querySelectorAll("video");
-videos.forEach((video) => handleVideoEvents(video));
 
 // Добавляем обработчики для мыши и клавиатуры
 body.addEventListener("mousemove", mouseHandler);
 body.addEventListener("keypress", keyHandler);
+videos.forEach((video) => handleVideoEvents(video));

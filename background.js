@@ -5,13 +5,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ activity: request.activity, type: request.type }),
+      body: JSON.stringify({ activity: request.activity, type: request.type, src: request.src }),
     })
       .then((response) => {
         sendResponse({ status: "success" });
       })
       .catch((error) => {
-        sendResponse({ status: "failed", error });
+        return true;
       });
   }
   return true;
