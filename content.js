@@ -6,6 +6,7 @@ let time = 0,
 
 let lastActivityTime = Date.now();
 let isActive = false;
+let isKeyPressed = false;
 let reason = "";
 let src = "";
 
@@ -77,7 +78,7 @@ function replaceIframesWithVideos() {
 
 function checkActivity() {
   const currentTime = Date.now();
-  if (isActive || currentTime - lastActivityTime <= 1000) {
+  if (isActive || isKeyPressed || currentTime - lastActivityTime <= 1000) {
     sendData({ activity: true, type: reason, src: src });
   } else {
     sendData({ activity: false, type: reason, src: src });
@@ -92,11 +93,26 @@ function mouseHandler() {
   src = window.origin;
 }
 
-function keyHandler() {
+function keyHandler(event) {
   lastActivityTime = Date.now();
   if (reason === "Воспроизведение видео" && isActive) return;
+  if (event.type === 'keydown') {
+    isActive = true;
+    isKeyPressed = true;
+    reason = `Ввод текста`;
+  } else if (event.type === 'keyup') {
+    isKeyPressed = false;
+  }
   reason = `Ввод текста`;
   src = window.origin;
+}
+
+function scrollHandler() {
+  lastActivityTime = Date.now();
+  if (reason === "Воспроизведение видео" && isActive) return;
+  reason = "Активность мыши";
+  src = window.origin;
+  isActive = true;
 }
 
 function handleVideoEvents(video) {
@@ -123,5 +139,7 @@ const videos = body.querySelectorAll("video");
 
 // Добавляем обработчики для мыши и клавиатуры
 body.addEventListener("mousemove", mouseHandler);
-body.addEventListener("keypress", keyHandler);
+body.addEventListener("keydown", keyHandler);
+body.addEventListener("keyup", keyHandler);
+body.addEventListener("scroll", scrollHandler);
 videos.forEach((video) => handleVideoEvents(video));
