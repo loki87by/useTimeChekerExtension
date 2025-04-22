@@ -9,13 +9,17 @@ let isActive = false;
 let isKeyPressed = false;
 let reason = "";
 let src = "";
-const excludedError = 'A listener indicated an asynchronous response by returning a Promise, but the message channel closed before a response was received.'
-
+const excludedError =
+  "A listener indicated an asynchronous response by returning a Promise, but the message channel closed before a response was received.";
 
 function sendData(data) {
   chrome.runtime.sendMessage(data, (response) => {
-    if (chrome.runtime.lastError && chrome.runtime.lastError !== 'excludedError') {
-      console.error("Message failed:", chrome.runtime.lastError);
+    if (chrome.runtime.lastError) {
+      if (chrome.runtime.lastError !== "excludedError") {
+        console.error("Message failed:", chrome.runtime.lastError);
+      } else {
+        return;
+      }
     }
   });
 }
@@ -98,10 +102,10 @@ function mouseHandler() {
 function keyHandler(event) {
   lastActivityTime = Date.now();
   if (reason === "Воспроизведение видео" && isActive) return;
-  if (event.type === 'keydown') {
+  if (event.type === "keydown") {
     isKeyPressed = true;
     reason = `Ввод текста`;
-  } else if (event.type === 'keyup') {
+  } else if (event.type === "keyup") {
     isKeyPressed = false;
   }
   reason = `Ввод текста`;
