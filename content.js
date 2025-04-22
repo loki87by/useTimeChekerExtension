@@ -9,10 +9,12 @@ let isActive = false;
 let isKeyPressed = false;
 let reason = "";
 let src = "";
+const excludedError = 'A listener indicated an asynchronous response by returning a Promise, but the message channel closed before a response was received.'
+
 
 function sendData(data) {
   chrome.runtime.sendMessage(data, (response) => {
-    if (chrome.runtime.lastError) {
+    if (chrome.runtime.lastError && chrome.runtime.lastError !== 'excludedError') {
       console.error("Message failed:", chrome.runtime.lastError);
     }
   });
