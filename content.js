@@ -97,7 +97,6 @@ function keyHandler(event) {
   lastActivityTime = Date.now();
   if (reason === "Воспроизведение видео" && isActive) return;
   if (event.type === 'keydown') {
-    isActive = true;
     isKeyPressed = true;
     reason = `Ввод текста`;
   } else if (event.type === 'keyup') {
