@@ -15,10 +15,13 @@ const excludedError =
 function sendData(data) {
   chrome.runtime.sendMessage(data, (response) => {
     if (chrome.runtime.lastError) {
-      if (chrome.runtime.lastError !== "excludedError") {
-        console.error("Message failed:", chrome.runtime.lastError);
-      } else {
+      if (
+        chrome.runtime.lastError === excludedError ||
+        chrome.runtime.lastError.message === excludedError
+      ) {
         return;
+      } else {
+        console.error("Message failed:", chrome.runtime.lastError);
       }
     }
   });
