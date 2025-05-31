@@ -9,19 +9,19 @@ let isActive = false;
 let isKeyPressed = false;
 let reason = "";
 let src = "";
-const excludedError =
-  "A listener indicated an asynchronous response by returning a Promise, but the message channel closed before a response was received.";
+const excludedErrors =[
+  "A listener indicated an asynchronous response by returning a Promise, but the message channel closed before a response was received.",
+"A listener indicated an asynchronous response by returning true, but the message channel closed before a response was received"
+]
 
 function sendData(data) {
   chrome.runtime.sendMessage(data, (response) => {
     if (chrome.runtime.lastError) {
+      const spam = typeof chrome.runtime.lastError === 'string' ? chrome.runtime.lastError : chrome.runtime.lastError.message
       if (
-        chrome.runtime.lastError === excludedError ||
-        chrome.runtime.lastError.message === excludedError
+        excludedErrors.includes(spam)
       ) {
         return;
-      } else {
-        console.error("Message failed:", chrome.runtime.lastError);
       }
     }
   });
