@@ -5,22 +5,38 @@ let time = 0,
   y = 0;
 
 let lastActivityTime = Date.now();
+let rutubeVideoLoaderData = {
+  startTime: null,
+  lastTime: null,
+};
 let isActive = false;
 let isKeyPressed = false;
 let reason = "";
 let src = "";
-const excludedErrors =[
+const excludedErrors = [
   "A listener indicated an asynchronous response by returning a Promise, but the message channel closed before a response was received.",
-"A listener indicated an asynchronous response by returning true, but the message channel closed before a response was received"
-]
+  "A listener indicated an asynchronous response by returning true, but the message channel closed before a response was received",
+];
+
+chrome.runtime.onMessage.addListener((msg) => {
+  if (msg.type === "video_loaded") {
+    if (!rutubeVideoLoaderData.startTime) {
+      rutubeVideoLoaderData.startTime = Date.now();
+      rutubeVideoLoaderData.lastTime = null;
+    } else {
+      rutubeVideoLoaderData.lastTime = Date.now();
+    }
+  }
+});
 
 function sendData(data) {
   chrome.runtime.sendMessage(data, (response) => {
     if (chrome.runtime.lastError) {
-      const spam = typeof chrome.runtime.lastError === 'string' ? chrome.runtime.lastError : chrome.runtime.lastError.message
-      if (
-        excludedErrors.includes(spam)
-      ) {
+      const spam =
+        typeof chrome.runtime.lastError === "string"
+          ? chrome.runtime.lastError
+          : chrome.runtime.lastError.message;
+      if (excludedErrors.includes(spam)) {
         return;
       }
     }
@@ -85,8 +101,23 @@ function replaceIframesWithVideos() {
   });
 }
 
+function checkRutubeVideoActivity(time) {
+  if (rutubeVideoLoaderData.startTime) {
+    isActive = true;
+    reason = "Воспроизведение видео";
+    src = "rutube";
+    if (rutubeVideoLoaderData.lastTime < time - 1000) {
+      isActive = false;
+      reason = "";
+      src = "";
+      rutubeVideoLoaderData.startTime = null;
+    }
+  }
+}
+
 function checkActivity() {
   const currentTime = Date.now();
+  checkRutubeVideoActivity(currentTime);
   if (isActive || isKeyPressed || currentTime - lastActivityTime <= 1000) {
     sendData({ activity: true, type: reason, src: src });
   } else {
