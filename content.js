@@ -1,4 +1,4 @@
-const body = document.querySelector("body");
+const body = document.body || document.querySelector("body");
 const iframes = body.querySelectorAll("iframe");
 let time = 0,
   x = 0,
@@ -105,13 +105,12 @@ function checkRutubeVideoActivity(time) {
   if (rutubeVideoLoaderData.startTime) {
     isActive = true;
     reason = "Воспроизведение видео";
-    src = "rutube";
+    src = window.origin || "rutube";
     if (rutubeVideoLoaderData.lastTime < time - 1000) {
       isActive = false;
-      reason = "";
-      src = "";
       rutubeVideoLoaderData.startTime = null;
     }
+    lastActivityTime = Date.now();
   }
 }
 
@@ -154,22 +153,23 @@ function scrollHandler() {
   isActive = true;
 }
 
-function handleVideoEvents(video) {
+function handleVideoEvents(video, bodyElement) {
+  if (!bodyElement || !video) return;
   addVideoEventHandlers(video);
   video.addEventListener("play", () => {
-    body.removeEventListener("mousemove", mouseHandler);
-    body.removeEventListener("mousedown", mouseHandler);
-    body.removeEventListener("keypress", keyHandler);
+    bodyElement.removeEventListener("mousemove", mouseHandler);
+    bodyElement.removeEventListener("mousedown", mouseHandler);
+    bodyElement.removeEventListener("keypress", keyHandler);
   });
   video.addEventListener("pause", () => {
-    body.addEventListener("mousemove", mouseHandler);
-    body.addEventListener("mousedown", mouseHandler);
-    body.addEventListener("keypress", keyHandler);
+    bodyElement.addEventListener("mousemove", mouseHandler);
+    bodyElement.addEventListener("mousedown", mouseHandler);
+    bodyElement.addEventListener("keypress", keyHandler);
   });
   video.addEventListener("ended", () => {
-    body.addEventListener("mousemove", mouseHandler);
-    body.addEventListener("mousedown", mouseHandler);
-    body.addEventListener("keypress", keyHandler);
+    bodyElement.addEventListener("mousemove", mouseHandler);
+    bodyElement.addEventListener("mousedown", mouseHandler);
+    bodyElement.addEventListener("keypress", keyHandler);
   });
 }
 
@@ -181,4 +181,4 @@ body.addEventListener("mousemove", mouseHandler);
 body.addEventListener("keydown", keyHandler);
 body.addEventListener("keyup", keyHandler);
 body.addEventListener("scroll", scrollHandler);
-videos.forEach((video) => handleVideoEvents(video));
+videos.forEach((video) => handleVideoEvents(video, body));
