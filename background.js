@@ -17,6 +17,19 @@ chrome.webNavigation.onCompleted.addListener((details) => {
 });
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.command === "pause-video") {
+    const videos = document.querySelectorAll("video");
+    videos.forEach((video) => {
+      if (
+        video.src.includes(request.src) ||
+        document.location.href.includes(request.src)
+      ) {
+        video.pause();
+      }
+    });
+    sendResponse({ status: "paused" });
+    return true;
+  }
   if (request.activity !== undefined) {
     fetch("http://localhost:5326/activity-status", {
       method: "POST",
